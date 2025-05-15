@@ -1,16 +1,22 @@
-"use client"
+"use client";
 
-import { createContext, useContext, useState, useEffect, type ReactNode } from "react"
-import { createPublicClient, http, createWalletClient, custom } from "viem"
-import { mainnet } from "viem/chains"
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  type ReactNode,
+} from "react";
+import { createPublicClient, http, createWalletClient, custom } from "viem";
+import { baseSepolia } from "viem/chains"; // Changed from mainnet
 
 interface WalletContextType {
-  address: string | null
-  isConnected: boolean
-  connect: () => Promise<void>
-  disconnect: () => void
-  publicClient: ReturnType<typeof createPublicClient> | null
-  walletClient: ReturnType<typeof createWalletClient> | null
+  address: string | null;
+  isConnected: boolean;
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  publicClient: ReturnType<typeof createPublicClient> | null;
+  walletClient: ReturnType<typeof createWalletClient> | null;
 }
 
 const WalletContext = createContext<WalletContextType>({
@@ -20,70 +26,74 @@ const WalletContext = createContext<WalletContextType>({
   disconnect: () => {},
   publicClient: null,
   walletClient: null,
-})
+});
 
-export const useWallet = () => useContext(WalletContext)
+export const useWallet = () => useContext(WalletContext);
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-  const [address, setAddress] = useState<string | null>(null)
-  const [isConnected, setIsConnected] = useState(false)
-  const [publicClient, setPublicClient] = useState<ReturnType<typeof createPublicClient> | null>(null)
-  const [walletClient, setWalletClient] = useState<ReturnType<typeof createWalletClient> | null>(null)
+  const [address, setAddress] = useState<string | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
+  const [publicClient, setPublicClient] = useState<ReturnType<
+    typeof createPublicClient
+  > | null>(null);
+  const [walletClient, setWalletClient] = useState<ReturnType<
+    typeof createWalletClient
+  > | null>(null);
 
   useEffect(() => {
     // Initialize public client
     const client = createPublicClient({
-      chain: mainnet,
+      chain: baseSepolia, // Changed from mainnet
       transport: http(),
-    })
-    setPublicClient(client)
+    });
+    setPublicClient(client);
 
     // Check if previously connected
-    const savedAddress = localStorage.getItem("walletAddress")
+    const savedAddress = localStorage.getItem("walletAddress");
     if (savedAddress) {
-      setAddress(savedAddress)
-      setIsConnected(true)
+      setAddress(savedAddress);
+      setIsConnected(true);
 
       if (window.ethereum) {
         const wallet = createWalletClient({
-          chain: mainnet,
+          chain: baseSepolia, // Changed from mainnet
           transport: custom(window.ethereum),
-        })
-        setWalletClient(wallet)
+        });
+        setWalletClient(wallet);
       }
     }
-  }, [])
+  }, []);
 
   const connect = async () => {
     if (!window.ethereum) {
-      alert("Please install MetaMask or another Ethereum wallet")
-      return
+      alert("Please install MetaMask or another Ethereum wallet");
+      return;
     }
 
     try {
       const wallet = createWalletClient({
-        chain: mainnet,
+        chain: baseSepolia, // Changed from mainnet
         transport: custom(window.ethereum),
-      })
+      });
 
-      const [userAddress] = await wallet.requestAddresses()
+      const [userAddress] = await wallet.requestAddresses();
 
-      setAddress(userAddress)
-      setWalletClient(wallet)
-      setIsConnected(true)
+      setAddress(userAddress);
+      setWalletClient(wallet);
+      setIsConnected(true);
 
-      localStorage.setItem("walletAddress", userAddress)
+      localStorage.setItem("walletAddress", userAddress);
     } catch (error) {
-      console.error("Error connecting wallet:", error)
+      console.error("Error connecting wallet:", error);
     }
-  }
+  };
 
   const disconnect = () => {
-    setAddress(null)
-    setWalletClient(null)
-    setIsConnected(false)
-    localStorage.removeItem("walletAddress")
-  }
+    setAddress(null);
+    setWalletClient(null);
+    setIsConnected(false);
+    localStorage.removeItem("walletAddress");
+  };
 
   return (
     <WalletContext.Provider
@@ -98,5 +108,5 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     >
       {children}
     </WalletContext.Provider>
-  )
+  );
 }

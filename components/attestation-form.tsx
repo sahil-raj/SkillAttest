@@ -26,7 +26,7 @@ import {
   custom,
 } from "viem";
 import { baseSepolia } from "viem/chains";
-import SkillAttestationAbi from "../app/abis/SkillAttestationAbi.json";
+import { SkillAttestationAbi } from "../app/abis/SkillAttestationAbi";
 
 const formSchema = z.object({
   walletAddress: z.string().refine((val) => isAddress(val), {
@@ -50,7 +50,7 @@ export default function AttestationForm() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      walletAddress: "",
+      walletAddress: "0x",
       skill: "",
       description: "",
     },
@@ -146,7 +146,7 @@ export default function AttestationForm() {
       });
 
       const hash = await (activeClient || walletClient).sendTransaction({
-        account: address,
+        account: address as `0x${string}`,
         to: contractAddress,
         data,
       });
